@@ -15,11 +15,12 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    // 注册用户，加密密码，保存到数据库，调用UserRepository的save方法
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword())); // 加密密码，防止明文存储，保存到数据库
         return userRepository.save(user);
     }
-
+    // 根据用户名查找用户，调用UserRepository的findByUsername方法
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }

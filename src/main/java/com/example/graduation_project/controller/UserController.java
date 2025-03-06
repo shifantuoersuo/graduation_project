@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -17,15 +18,17 @@ public class UserController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+
+    // 注册接口, 传入 User 对象, 注册成功返回 "注册成功", 否则返回 "用户名已存在"。调用 UserService 注册方法
     @PostMapping("/register")
     public String register(@RequestBody User user) {
-        if (userService.findByUsername(user.getUsername()).isPresent()) {
+        if (userService.findByUsername(user.getUsername()).isPresent()) {//
             return "用户名已存在";
         }
         userService.registerUser(user);
         return "注册成功";
     }
-
+    // 登录接口, 传入 User 对象, 成功返回 "登录成功", 否则返回 "用户名或密码错误"。调用 UserService 登录方法
     @PostMapping("/login")
     public String login(@RequestBody User user) {
         Optional<User> dbUser = userService.findByUsername(user.getUsername());
