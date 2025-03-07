@@ -3,6 +3,7 @@ package com.example.graduation_project.controller;
 import com.example.graduation_project.entity.User;
 import com.example.graduation_project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,5 +31,13 @@ public class UserController {
         String token = userService.loginUser(user.getUsername(), user.getPassword());
         return token != null ? token : "用户名或密码错误";
     }
+
+    //分配管理员
+    @PutMapping("/update-role/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")  // 只有管理员能调用
+    public String updateUserRole(@PathVariable Long userId, @RequestParam String newRole) {
+        return userService.updateUserRole(userId, newRole);
+    }
+
 }
 

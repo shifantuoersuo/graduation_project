@@ -37,5 +37,17 @@ public class UserService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
+
+    //修改用户角色
+    public String updateUserRole(Long userId, String newRole) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            user.get().setRole(newRole.toUpperCase()); // 确保角色大写
+            userRepository.save(user.get());
+            return "用户角色更新成功：" + newRole;
+        }
+        return "用户不存在";
+    }
+
 }
 

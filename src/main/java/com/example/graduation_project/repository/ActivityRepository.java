@@ -6,4 +6,7 @@ import java.util.List;
 
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
     List<Activity> findByStatus(String status);//根据状态查询活动
+
+    List<Activity> findByUserId(Long userId);//根据用户id查询活动
 }
+

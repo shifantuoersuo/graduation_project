@@ -34,8 +34,10 @@ public class User {
     private String role = "USER"; // 默认为普通用户
 
     @Column(nullable = false)
-    private LocalDateTime createTime = LocalDateTime.now();
+    private int points = 0; // 用户积分，默认 0 分
 
+    @Column(nullable = false)
+    private LocalDateTime createTime = LocalDateTime.now();
 
 }
 

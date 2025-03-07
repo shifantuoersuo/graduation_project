@@ -3,6 +3,16 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/eco_reward_system
+    url: jdbc:mysql://localhost:3306/eco_reward_system?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database: mysql
+    show-sql: true  # 显示 SQL 语句
+    properties:
+      hibernate:
+        format_sql: true  # 让 SQL 语句更易读
+    hibernate:
+      ddl-auto: update  # 自动更新表结构
