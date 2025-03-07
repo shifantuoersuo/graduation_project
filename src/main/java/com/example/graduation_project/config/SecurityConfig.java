@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 让 Spring Security 变成无状态 API
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll() // 允许注册和登录
+                        .requestMatchers("/api/activities/submit/**").hasRole("USER") // 只有用户可以提交环保活动
                         .anyRequest().authenticated() // 其他请求需要身份验证
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // 在认证过滤器前加入 JWT 过滤器

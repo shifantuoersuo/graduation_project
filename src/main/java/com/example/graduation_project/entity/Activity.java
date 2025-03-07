@@ -31,6 +31,6 @@ public class Activity {
     private String description;
     private String status = "PENDING"; // 待审核
     private int points = 0;
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createTime = LocalDateTime.now();
 
 }
