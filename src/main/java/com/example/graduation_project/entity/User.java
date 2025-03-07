@@ -2,7 +2,6 @@ package com.example.graduation_project.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 /**
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
  * password：密码
  * email：邮箱
  * role：角色，默认为普通用户
- * createdAt：创建时间
+ * created_time：创建时间
  */
 @Data// lombok注解，自动生成get、set方法
 @Entity// JPA注解，声明为实体类
@@ -35,7 +34,7 @@ public class User {
     private String role = "USER"; // 默认为普通用户
 
     @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createTime = LocalDateTime.now();
 
 
 }
