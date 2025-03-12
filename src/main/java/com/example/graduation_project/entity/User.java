@@ -1,5 +1,6 @@
 package com.example.graduation_project.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -30,11 +31,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
-    private String role = "USER"; // 默认为普通用户
-
-    @Column(nullable = false)
-    private int points = 0; // 用户积分，默认 0 分
+    @Enumerated(EnumType.STRING)
+    private Role role;// 枚举类型，声明角色
 
     @Column(nullable = false)
     private LocalDateTime createTime = LocalDateTime.now();

@@ -65,24 +65,24 @@ public class PointsService {
         return pointTransactionRepository.findByUserId(userId);
     }
 
-    //管理员调整用户积分
-    public String adjustUserPoints(Long userId, int points, String reason) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isPresent()) {
-            user.get().setPoints(user.get().getPoints() + points);
-            userRepository.save(user.get());
-
-            // 记录积分变动
-            PointTransaction transaction = new PointTransaction();
-            transaction.setUser(user.get());
-            transaction.setPoints(points);
-            transaction.setReason(reason);
-            pointTransactionRepository.save(transaction);
-
-            return "用户积分调整成功";
-        }
-        return "用户不存在";
-    }
+//    //管理员调整用户积分
+//    public String adjustUserPoints(Long userId, int points, String reason) {
+//        Optional<User> user = userRepository.findById(userId);
+//        if (user.isPresent()) {
+//            user.get().setPoints(user.get().getPoints() + points);
+//            userRepository.save(user.get());
+//
+//            // 记录积分变动
+//            PointTransaction transaction = new PointTransaction();
+//            transaction.setUser(user.get());
+//            transaction.setPoints(points);
+//            transaction.setReason(reason);
+//            pointTransactionRepository.save(transaction);
+//
+//            return "用户积分调整成功";
+//        }
+//        return "用户不存在";
+//    }
 
     public List<User> getTopUsersByPoints() {
         return userRepository.findAll(Sort.by(Sort.Direction.DESC, "points")).stream().limit(10).collect(Collectors.toList());

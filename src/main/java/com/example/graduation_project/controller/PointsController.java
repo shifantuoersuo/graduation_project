@@ -39,12 +39,12 @@ public class PointsController {
     public List<PointTransaction> getUserPointsHistory(@PathVariable Long userId) {
         return pointsService.getUserPointsHistory(userId);
     }
-    // 管理员调整用户积分
-    @PostMapping("/adjust")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String adjustUserPoints(@RequestParam Long userId, @RequestParam int points, @RequestParam String reason) {
-        return pointsService.adjustUserPoints(userId, points, reason);
-    }
+//    // 管理员调整用户积分
+//    @PostMapping("/adjust")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public String adjustUserPoints(@RequestParam Long userId, @RequestParam int points, @RequestParam String reason) {
+//        return pointsService.adjustUserPoints(userId, points, reason);
+//    }
 
     //获取积分排行榜
     @GetMapping("/leaderboard")

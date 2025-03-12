@@ -6,14 +6,13 @@ import java.time.LocalDateTime;
 
 /**
  *   实体类：活动
- *   用于存储用户发布的活动信息
- *   包括：
- *   - 用户ID
- *   - 活动标题
- *   - 活动描述
- *   - 活动状态（待审核、审核通过、审核不通过）
- *   - 积分
- *   - 创建时间
+ *   user_id: 用户id
+ *   title: 活动标题
+ *   description: 活动描述
+ *   imageUrl: 活动图片url
+ *   status: 活动状态，默认待审核
+ *   points: 活动积分，默认0
+ *   createTime: 活动创建时间
  */
 @Data
 @Entity
@@ -26,11 +25,11 @@ public class Activity {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
     private String title;
     private String description;
+    private String imageUrl;
     private String status = "PENDING"; // 待审核
-    private int points = 0;
+    private Integer points;
     private LocalDateTime createTime = LocalDateTime.now();
 
 }
