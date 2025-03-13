@@ -1,18 +1,20 @@
 package com.example.graduation_project.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.example.graduation_project.Common.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
  * 用户实体类
- * id：用户id
+ * id：主键
  * username：用户名
  * password：密码
  * email：邮箱
- * role：角色，默认为普通用户
- * created_time：创建时间
+ * avatar：头像
+ * role：角色，枚举类型
+ * createTime：创建时间
+ * updateTime：更新时间
  */
 @Data// lombok注解，自动生成get、set方法
 @Entity// JPA注解，声明为实体类
@@ -31,11 +33,13 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    // 新增头像字段，存储 URL
+    private String avatar;
+
     @Enumerated(EnumType.STRING)
     private Role role;// 枚举类型，声明角色
 
-    @Column(nullable = false)
     private LocalDateTime createTime = LocalDateTime.now();
-
+    private LocalDateTime updateTime;
 }
 
