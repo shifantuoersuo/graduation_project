@@ -1,6 +1,6 @@
 package com.example.graduation_project.Common;
 
-import com.example.graduation_project.service.CustomUserDetailsService;
+import com.example.graduation_project.service.Impl.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

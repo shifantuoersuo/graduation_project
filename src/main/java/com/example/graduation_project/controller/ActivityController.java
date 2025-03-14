@@ -1,64 +1,80 @@
 package com.example.graduation_project.controller;
 
+import com.example.graduation_project.Common.ActivityStatus;
 import com.example.graduation_project.entity.Activity;
+import com.example.graduation_project.entity.User;
 import com.example.graduation_project.service.ActivityService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+import com.example.graduation_project.service.Impl.ActivityServiceImpl;
+import com.example.graduation_project.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/activities")
+@RequiredArgsConstructor
 public class ActivityController {
-    @Autowired
-    private ActivityService activityService;
 
-    // 用户提交环保活动
-    @PostMapping("/submit/{userId}")
-    public String submitActivity(@PathVariable Long userId, @RequestBody Activity activity) {
-        return activityService.submitActivity(userId, activity);
+    private final ActivityService activityService;
+    private final UserService userService;
+
+    /**
+     * 提交活动的API接口
+     *
+     * 该方法允许用户提交一个新的活动，并返回提交后的活动对象。
+     * 只有经过身份验证的用户才能调用此接口。
+     *
+     * @param userDetails 当前登录的用户信息，通过Spring Security的@AuthenticationPrincipal注解自动注入
+     * @param activity 用户提交的活动对象，通过@RequestBody注解从HTTP请求体中解析出来
+     * @return ResponseEntity<Activity> 返回一个包含提交后的活动对象的HTTP响应
+     */
+    @PostMapping("/submit")
+    public ResponseEntity<Activity> submitActivity(@AuthenticationPrincipal UserDetails userDetails,
+                                                   @RequestBody Activity activity) {
+        User user = userService.getByUsername(userDetails.getUsername());
+        return ResponseEntity.ok(activityService.submitActivity(user.getId(), activity));
     }
 
-    // 获取待审核的环保活动（管理员查看）
-    @PreAuthorize("hasRole('ADMIN')")
+    /**
+     * 获取当前用户的活动列表
+     * @param userDetails 当前认证的用户详情
+     * @return 包含用户活动列表的响应实体
+     */
+    @GetMapping("/my")
+    public ResponseEntity<List<Activity>> getMyActivities(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = userService.getByUsername(userDetails.getUsername());
+        return ResponseEntity.ok(activityService.getUserActivities(user.getId()));
+    }
+
+    /**
+     * 获取所有待审核的活动列表
+     * 该接口仅允许具有ADMIN角色的用户访问。
+     * @return 包含待审核活动列表的响应实体
+     */
     @GetMapping("/pending")
-    public List<Activity> getPendingActivities() {
-        return activityService.getPendingActivities();
-    }
-
-    // 审核环保活动（管理员操作）
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/approve/{id}")
-    public String approveActivity(@PathVariable Long id, @RequestParam boolean isApproved) {
-        return activityService.approveActivity(id, isApproved);
+    public ResponseEntity<List<Activity>> getPendingActivities() {
+        return ResponseEntity.ok(activityService.getPendingActivities());
     }
 
-    //用户查询自己提交的环保活动
-    @GetMapping("/user/{userId}")
-    public List<Activity> getUserActivities(@PathVariable Long userId) {
-        return activityService.getUserActivities(userId);
-    }
-
-    //用户删除未审核的环保活动
-    @DeleteMapping("/delete/{id}")
-    public String deleteActivity(@PathVariable Long id) {
-        return activityService.deleteActivity(id);
-    }
-
-    // 管理员拒绝活动时，添加拒绝原因
-    @PreAuthorize("hasRole('ADMIN')")
+    /**
+     * 管理员对指定活动进行评审的接口
+     *
+     * @param id     活动的唯一标识符
+     * @param status 活动评审的状态
+     * @param points 可选参数，评审的得分，默认为0
+     * @return 返回评审后的活动对象，状态码为200（OK）
+     */
     @PostMapping("/review/{id}")
-    public String reviewActivity(@PathVariable Long id, @RequestParam boolean isApproved, @RequestParam(required = false) String reason) {
-        return activityService.reviewActivity(id, isApproved, reason);
-    }
-
-    //分页查询环保活动
-    @GetMapping("/list")
-    public Page<Activity> listActivities(@RequestParam(defaultValue = "0") int page,
-                                         @RequestParam(defaultValue = "5") int size) {
-        return activityService.listActivities(page, size);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Activity> reviewActivity(@PathVariable Long id,
+                                                   @RequestParam ActivityStatus status,
+                                                   @RequestParam(required = false, defaultValue = "0") int points) {
+        return ResponseEntity.ok(activityService.reviewActivity(id, status, points));
     }
 }
-

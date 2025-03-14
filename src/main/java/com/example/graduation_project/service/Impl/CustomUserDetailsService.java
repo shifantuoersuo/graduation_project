@@ -1,4 +1,4 @@
-package com.example.graduation_project.service;
+package com.example.graduation_project.service.Impl;
 
 import com.example.graduation_project.entity.User;
 import com.example.graduation_project.repository.UserRepository;

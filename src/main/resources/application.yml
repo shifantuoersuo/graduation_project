@@ -8,6 +8,10 @@ spring:
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  web:
+    resources:
+      static-locations: classpath:/static/, file:uploads/
+
   jpa:
     database: mysql
     show-sql: true  # 显示 SQL 语句

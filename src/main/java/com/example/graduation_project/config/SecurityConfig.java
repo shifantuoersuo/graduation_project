@@ -1,7 +1,7 @@
 package com.example.graduation_project.config;
 
 import com.example.graduation_project.Common.JwtAuthenticationFilter;
-import com.example.graduation_project.service.CustomUserDetailsService;
+import com.example.graduation_project.service.Impl.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
