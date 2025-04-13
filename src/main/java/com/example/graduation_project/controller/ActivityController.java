@@ -2,6 +2,7 @@ package com.example.graduation_project.controller;
 
 import com.example.graduation_project.Common.ActivityStatus;
 import com.example.graduation_project.entity.Activity;
+import com.example.graduation_project.entity.ReviewRequest;
 import com.example.graduation_project.entity.User;
 import com.example.graduation_project.service.ActivityService;
 import com.example.graduation_project.service.Impl.ActivityServiceImpl;
@@ -37,7 +38,7 @@ public class ActivityController {
     public ResponseEntity<Activity> submitActivity(@AuthenticationPrincipal UserDetails userDetails,
                                                    @RequestBody Activity activity) {
         User user = userService.getByUsername(userDetails.getUsername());
-        return ResponseEntity.ok(activityService.submitActivity(user.getId(), activity));
+        return ResponseEntity.ok(activityService.submitActivity(user.getId(), user.getUsername(),activity));
     }
 
     /**
@@ -62,19 +63,20 @@ public class ActivityController {
         return ResponseEntity.ok(activityService.getPendingActivities());
     }
 
-    /**
-     * 管理员对指定活动进行评审的接口
-     *
-     * @param id     活动的唯一标识符
-     * @param status 活动评审的状态
-     * @param points 可选参数，评审的得分，默认为0
-     * @return 返回评审后的活动对象，状态码为200（OK）
-     */
+
     @PostMapping("/review/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Activity> reviewActivity(@PathVariable Long id,
-                                                   @RequestParam ActivityStatus status,
-                                                   @RequestParam(required = false, defaultValue = "0") int points) {
-        return ResponseEntity.ok(activityService.reviewActivity(id, status, points));
+                                                   @RequestBody ReviewRequest reviewRequest) {
+        return ResponseEntity.ok(activityService.reviewActivity(id, reviewRequest));
+    }
+
+    /**
+     * 获取所有已审核的活动（非 PENDING 状态）
+     */
+    @GetMapping("/history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Activity>> getReviewedActivities() {
+        return ResponseEntity.ok(activityService.getReviewedActivities());
     }
 }

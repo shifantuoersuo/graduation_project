@@ -6,13 +6,19 @@ import com.example.graduation_project.entity.User;
 import com.example.graduation_project.exception.CustomerException;
 import com.example.graduation_project.repository.UserRepository;
 import com.example.graduation_project.service.UserService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -81,9 +87,47 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomerException("用户不存在"));
 
-        user.setEmail(updatedUser.getEmail());
-        user.setAvatar(updatedUser.getAvatar()); // 设置头像
-        user.setUpdateTime(LocalDateTime.now());
+        boolean isUpdated = false;// 是否有更新
+
+
+        // 用户名处理
+        if (updatedUser.getUsername() != null) {
+            String newUsername = updatedUser.getUsername().trim();
+            if (newUsername.isEmpty()) {
+                throw new CustomerException("用户名不能为空");
+            }
+            if (!newUsername.equals(user.getUsername())) {
+                if (userRepository.existsByUsername(newUsername)) {
+                    throw new CustomerException("用户名已存在");
+                }
+                user.setUsername(newUsername);
+                isUpdated = true;
+            }
+        }
+
+        // 邮箱处理
+        if (updatedUser.getEmail() != null) {
+            String newEmail = updatedUser.getEmail();
+            if (!newEmail.equals(user.getEmail())) {
+                if (userRepository.existsByEmail(newEmail)) {
+                    throw new CustomerException("邮箱已存在");
+                }
+                user.setEmail(newEmail);
+                isUpdated = true;
+            }
+        }
+
+
+        // 头像处理
+        if (updatedUser.getAvatar() != null) {
+            user.setAvatar(updatedUser.getAvatar());
+            isUpdated = true;
+        }
+
+        // 更新时间（仅在数据变更时更新）
+        if (isUpdated) {
+            user.setUpdateTime(LocalDateTime.now());
+        }
 
         return userRepository.save(user);
     }
@@ -92,18 +136,29 @@ public class UserServiceImpl implements UserService {
      * 根据管理员提供的信息更新用户信息
      */
     @Override
-    public User updateUserByAdmin(Long id, User updatedUser) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new CustomerException("用户不存在"));
+    public User updateUserByAdmin(Long id, User updatedUser, String operatorUsername) {
+        User operator = getByUsername(operatorUsername);
+        User target = userRepository.findById(id).orElseThrow(() -> new CustomerException("用户不存在"));
 
-        user.setUsername(updatedUser.getUsername());
-        user.setEmail(updatedUser.getEmail());
-        user.setAvatar(updatedUser.getAvatar()); // 设置头像
-        user.setRole(updatedUser.getRole());
-        user.setUpdateTime(LocalDateTime.now());
-
-        return userRepository.save(user);
+        // 如果对方是 ADMIN/SUPER_ADMIN，当前用户不是 SUPER_ADMIN，不允许改
+        if ((target.getRole() == Role.ADMIN || target.getRole() == Role.SUPER_ADMIN)
+                && operator.getRole() != Role.SUPER_ADMIN) {
+            throw new CustomerException("权限不足，无法修改管理员信息");
+        }
+        // 新增：禁止修改超级管理员
+        if (target.getRole() == Role.SUPER_ADMIN) {
+            throw new CustomerException("禁止修改超级管理员信息");
+        }
+        target.setUsername(updatedUser.getUsername());
+        target.setEmail(updatedUser.getEmail());
+        target.setAvatar(updatedUser.getAvatar());
+        target.setRole(updatedUser.getRole());
+        target.setActivityCount(updatedUser.getActivityCount());
+        target.setTotalPoints(updatedUser.getTotalPoints());
+        target.setUpdateTime(LocalDateTime.now());
+        return userRepository.save(target);
     }
+
 
     /**
      * 修改用户密码的方法
@@ -111,6 +166,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public boolean changePassword(String username, String oldPassword, String newPassword) {
+        System.out.println("changePassword"+username+oldPassword+newPassword);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomerException("用户不存在"));
         // 验证旧密码
@@ -124,18 +180,24 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdateTime(LocalDateTime.now());
         userRepository.save(user);
         return true;
     }
 
     @Override
-    public void deleteUser(Long id) {// 检查用户是否存在
-        if (userRepository.findById(id).isEmpty()) {
-            throw new CustomerException("用户不存在");
+    public void deleteUser(Long id, String operatorUsername) {
+        User operator = getByUsername(operatorUsername);
+        User target = userRepository.findById(id).orElseThrow(() -> new CustomerException("用户不存在"));
+
+        if ((target.getRole() == Role.ADMIN || target.getRole() == Role.SUPER_ADMIN)
+                && operator.getRole() != Role.SUPER_ADMIN) {
+            throw new CustomerException("权限不足，不能删除管理员");
         }
-        // 如果用户存在，则尝试删除
-            userRepository.deleteById(id);
+
+        userRepository.deleteById(id);
     }
+
 
     @Override
     public List<User> getAllUsers() {
@@ -143,10 +205,52 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageInfo<User> selectPage(Integer pageNum, Integer pageSize) {
-        // 开启分页查询
-        PageHelper.startPage(pageNum, pageSize);
-        List<User> list = userRepository.findByRole(Role.USER);
-        return PageInfo.of(list);
+    public Page<User> searchUsers(Integer pageNum, Integer pageSize, String keyword, Role role) {
+        if (pageNum < 1) throw new CustomerException("页码不能小于1");
+        int adjustedPageNum = pageNum - 1;
+        Pageable pageable = PageRequest.of(adjustedPageNum, pageSize, Sort.by("createTime").descending());
+
+        // 构建动态查询条件
+        Specification<User> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.hasText(keyword)) {
+                Predicate usernamePredicate = cb.like(root.get("username"), "%" + keyword + "%");
+                Predicate emailPredicate = cb.like(root.get("email"), "%" + keyword + "%");
+                predicates.add(cb.or(usernamePredicate, emailPredicate));
+            }
+
+            if (role != null) {
+                predicates.add(cb.equal(root.get("role"), role));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return userRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public void resetPassword(Long id, String operatorUsername) {
+        User operator = getByUsername(operatorUsername);
+        User target = userRepository.findById(id).orElseThrow(() -> new CustomerException("用户不存在"));
+
+        // 权限校验
+        if ((target.getRole() == Role.ADMIN || target.getRole() == Role.SUPER_ADMIN)
+                && operator.getRole() != Role.SUPER_ADMIN) {
+            throw new CustomerException("权限不足");
+        }
+
+        // 重置密码逻辑
+        target.setPassword(passwordEncoder.encode("12345678"));
+        userRepository.save(target);
+    }
+
+
+    @Override
+    public String getRole(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomerException("用户不存在"));
+        return user.getRole().toString();
     }
 }

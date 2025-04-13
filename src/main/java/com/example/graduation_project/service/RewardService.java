@@ -9,5 +9,11 @@ public interface RewardService {
     List<Reward> getAllRewards();
     RewardRecord redeem(Long userId, Long rewardId);
     List<RewardRecord> getUserRewardRecords(Long userId);
+
+    Reward createReward(Reward reward);
+
+    Reward updateReward(Long id, Reward reward);
+
+    void deleteReward(Long id);
 }
 

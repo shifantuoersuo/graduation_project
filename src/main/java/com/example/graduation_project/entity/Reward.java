@@ -25,12 +25,14 @@ public class Reward {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(nullable = false)
     private String name;         // 奖励名称
     private String description;  // 奖励描述
+    @Column(nullable = false)
     private Integer cost;        // 所需积分
     private String imageUrl;     // 奖励图像（可选）
 
+    @Column(nullable = false)
     private Integer stock;       // 剩余库存
 
     private LocalDateTime createTime = LocalDateTime.now();

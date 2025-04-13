@@ -36,8 +36,8 @@ public class PointController {
     }
 
     @GetMapping("/top")
-    public ResponseEntity<List<Map<String, Object>>> getTopUsers() {
-        return ResponseEntity.ok(pointService.getTopUsers());
+    public ResponseEntity<List<Map<String, Object>>> getTopUsers(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(pointService.getTopUsers(userDetails));
     }
     @GetMapping("/my/recent")
     public ResponseEntity<List<PointRecord>> getMyRecent(@AuthenticationPrincipal UserDetails userDetails,
@@ -46,7 +46,7 @@ public class PointController {
         return ResponseEntity.ok(pointService.getUserRecordsAfterDays(user.getId(), days));
     }
 
-    @GetMapping("/my/search")
+    @GetMapping("/my/search")//未使用
     public ResponseEntity<List<PointRecord>> getMyFiltered(@AuthenticationPrincipal UserDetails userDetails,
                                                            @RequestParam String keyword) {
         User user = userService.getByUsername(userDetails.getUsername());

@@ -14,6 +14,7 @@ public class CustomerException extends RuntimeException {
     }
 
     public CustomerException(String msg) {
+        super(msg);
         this.code = "500";
         this.msg = msg;
     }

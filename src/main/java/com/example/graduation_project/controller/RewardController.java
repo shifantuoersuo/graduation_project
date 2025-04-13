@@ -6,7 +6,9 @@ import com.example.graduation_project.entity.User;
 import com.example.graduation_project.service.RewardService;
 import com.example.graduation_project.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,6 +38,28 @@ public class RewardController {
     public ResponseEntity<List<RewardRecord>> getMyRecords(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.getByUsername(userDetails.getUsername());
         return ResponseEntity.ok(rewardService.getUserRewardRecords(user.getId()));
+    }
+
+    @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Reward> createReward(@RequestBody Reward reward) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(rewardService.createReward(reward));
+    }
+
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Reward> updateReward(
+            @PathVariable Long id,
+            @RequestBody Reward reward
+    ) {
+        return ResponseEntity.ok(rewardService.updateReward(id, reward));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteReward(@PathVariable Long id) {
+        rewardService.deleteReward(id);
+        return ResponseEntity.noContent().build();
     }
 }
 

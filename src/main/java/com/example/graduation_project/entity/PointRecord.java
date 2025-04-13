@@ -27,6 +27,8 @@ public class PointRecord {
 
     private Long userId;
 
+    private String userName;
+
     private Integer points;
 
     private String description; // 来源描述，如“审核通过：校园垃圾清理”

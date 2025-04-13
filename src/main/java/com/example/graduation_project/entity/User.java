@@ -39,6 +39,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;// 枚举类型，声明角色
 
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer totalPoints = 0;  // 总积分
+
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer activityCount = 0; // 参与活动总数
+
     private LocalDateTime createTime = LocalDateTime.now();
     private LocalDateTime updateTime;
 }

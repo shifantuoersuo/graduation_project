@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,4 +24,9 @@ public interface PointRecordRepository extends JpaRepository<PointRecord, Long> 
     @Query("SELECT p FROM PointRecord p WHERE p.userId = :userId AND p.description LIKE %:keyword%")
     List<PointRecord> findByUserIdAndDescriptionContaining(@Param("userId") Long userId, @Param("keyword") String keyword);
 
+    @Query("SELECT p FROM PointRecord p WHERE DATE(p.createTime) = :date")
+    List<PointRecord> findByDate(@Param("date") LocalDate date);
+    @Query("SELECT p FROM PointRecord p WHERE p.createTime >= :start AND p.createTime < :end")
+    List<PointRecord> findByDateRange(@Param("start") LocalDateTime start,
+                                      @Param("end") LocalDateTime end);
 }

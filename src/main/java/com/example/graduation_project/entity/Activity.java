@@ -28,6 +28,8 @@ public class Activity {
 
     private Long userId;
 
+    private String username;      // 活动完成者的用户名
+
     private String title;         // 活动标题
     private String description;   // 活动描述
     private String imageUrl;      // 活动相关图片
@@ -36,6 +38,10 @@ public class Activity {
     private ActivityStatus status = ActivityStatus.PENDING;  // 审核状态：PENDING、APPROVED、REJECTED
 
     private Integer points = 0;   // 审核后获得的积分
+
+    @Column(name = "reject_reason")
+    private String rejectReason;
+
 
     private LocalDateTime createTime = LocalDateTime.now();
     private LocalDateTime updateTime;

@@ -19,10 +19,10 @@ import java.util.UUID;
 @RequestMapping("/api/upload")
 public class UploadController {
 
-//    private final String uploadDir = "uploads"; // 存放图片的相对目录
-    private final String uploadDir = "D:/卓面文档/java开发/Graduation project/uploads";
+    private final String uploadDir = "D:\\卓面文档\\java开发\\Graduation project\\vue\\public\\uploads"; // 存放图片的绝对目录
     @PostMapping("/image")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+        System.out.println("Upload request received");
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "文件为空"));
         }
@@ -39,7 +39,8 @@ public class UploadController {
             // 生成唯一文件名
             String originalFilename = file.getOriginalFilename();
             String fileName = UUID.randomUUID() + "_" + originalFilename;
-            File dest = new File(uploadDir + "/" + fileName);
+            File dest = new File(uploadDir + "\\" + fileName);
+//            File dest = new File(uploadDir + "/" + fileName);
 
             file.transferTo(dest);
 

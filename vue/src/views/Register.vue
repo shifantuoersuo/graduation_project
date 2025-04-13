@@ -1,87 +1,141 @@
 <template>
-  <div class="bg">
-    <div style="width: 350px; background-color: #fff; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 40px 20px">
-      <el-form status-icon ref="formRef" :model="data.form" :rules="data.rules">
-        <div style="margin-bottom: 40px; text-align: center; font-weight: bold; font-size: 24px">欢 迎 注 册</div>
-        <el-form-item prop="username">
-          <el-input size="large" v-model="data.form.username" autocomplete="off" prefix-icon="User" placeholder="请输入账号" />
+  <div class="register-container">
+    <el-card class="register-card">
+      <h2 class="title">用户注册</h2>
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
-        <el-form-item prop="password">
-          <el-input size="large" show-password v-model="data.form.password" autocomplete="off" prefix-icon="Lock" placeholder="请输入密码" />
+
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="form.password" placeholder="请输入密码" show-password />
         </el-form-item>
-        <el-form-item prop="confirmPassword">
-          <el-input size="large" show-password v-model="data.form.confirmPassword" autocomplete="off" prefix-icon="Lock" placeholder="请再次确认密码" />
+
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="form.confirmPassword" placeholder="请再次输入密码" show-password />
         </el-form-item>
-        <div style="margin-bottom: 20px">
-          <el-button style="width: 100%; background-color: #248243; border-color: #248243" size="large" type="primary" @click="register">注 册</el-button>
-        </div>
-        <div style="text-align: right">
-          已有账号？请 <a style="color: #248243" href="/login">登录</a>
-        </div>
+
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email" placeholder="请输入邮箱（可选）" />
+        </el-form-item>
+
+        <el-form-item>
+          <el-button type="primary" @click="handleRegister">注册</el-button>
+          <el-button type="text" @click="$router.push('/login')">已有账号？去登录</el-button>
+        </el-form-item>
       </el-form>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
-import request from "@/utils/request.js";
-import {ElMessage} from "element-plus";
-import router from "@/router/index.js";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import axios from 'axios'
 
-const validatePass = (rule, value, callback) => {
-  // value 表示用户输入的确认密码
-  if (value !== data.form.password) {
-    callback(new Error("两次输入的密码不匹配！"))
-  } else {
-    callback()
-  }
-}
+const router = useRouter()
 
 const formRef = ref()
-const data = reactive({
-  form: {},
-  rules: {
-    username: [
-      { required: true, message: '请输入账号', trigger: 'blur' },
-      { min: 3, message: '账号最少3位', trigger: 'blur' },
-    ],
-    password: [
-      { required: true, message: '请输入密码', trigger: 'blur' }
-    ],
-    confirmPassword: [
-      { required: true, message: '请再次确认密码', trigger: 'blur' },
-      { validator: validatePass, trigger: 'blur' }
-    ]
-  }
+
+const form = ref({
+  username: '',
+  password: '',
+  confirmPassword: '',
+  email: ''
 })
 
-const register = () => {
-  formRef.value.validate((valid) => {
-    if (valid) {
-      request.post('/register', data.form).then(res => {
-        if (res.code === '200') {
-          ElMessage.success('注册成功')
-          router.push('/login')
-        } else {
-          ElMessage.error(res.msg)
-        }
+const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    {
+      validator: (_, value) => {
+        return value === form.value.password
+      },
+      message: '两次输入的密码不一致',
+      trigger: 'blur'
+    }
+  ],
+  email: [
+    {
+      type: 'email',
+      message: '请输入正确的邮箱格式',
+      trigger: 'blur',
+      required: false
+    }
+  ]
+}
+
+const handleRegister = () => {
+  formRef.value.validate(async (valid) => {
+    if (!valid) return
+
+    try {
+      await axios.post('/api/users/register', {
+        username: form.value.username,
+        password: form.value.password,
+        email: form.value.email
       })
+      ElMessage.success('注册成功，请登录')
+      router.push('/login')
+    } catch (err) {
+      ElMessage.error(err.response?.data?.message || '注册失败')
+      console.error(err)
     }
   })
 }
 </script>
 
 <style scoped>
-.bg {
-  height: 100vh;
-  width: 100vw; /* 确保宽度覆盖整个视口 */
+.register-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
-  background-image: url("@/assets/imgs/bg.jpg");
-  background-size: contain;
-  background-position: center; /* 确保图片居中显示 */
+  height: 100vh;
+  background: url("@/assets/imgs/bg.jpg") no-repeat right center fixed;
+  background-size: cover;
+  position: relative;
+}
+/* 添加半透明遮罩增强文字可读性 */
+.register-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 0;
+}
+.register-card {
+  width: 400px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.9); /* 添加半透明白色背景 */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* 增强阴影 */
+  border-radius: 10px;
+  position: relative;
+  z-index: 1;
+}
+.title {
+  text-align: center;
+  margin-bottom: 20px;
 }
 </style>
+<!--.register-container {-->
+<!--display: flex;-->
+<!--justify-content: center;-->
+<!--align-items: center;-->
+<!--height: 100vh;-->
+<!--background-color: #f5f7fa;-->
+<!--}-->
+
+<!--.register-card {-->
+<!--width: 450px;-->
+<!--padding: 30px;-->
+<!--}-->
+
